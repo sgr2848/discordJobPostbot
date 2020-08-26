@@ -79,7 +79,7 @@ bot.on('message', async (message) => {
   if (bot.commands.has(cmd)) command = bot.commands.get(cmd);
   else if (bot.aliases.has(cmd)) command = bot.commands.get(bot.aliases.get(cmd));
 
-  if (command) command.execute(bot, message, args);
+  if (command) command.execute({ bot, message, args });
 });
 
 bot.login(process.env.TOKEN).catch((err) => console.error(err));
