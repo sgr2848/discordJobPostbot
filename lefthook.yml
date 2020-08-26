@@ -36,18 +36,18 @@ pre-commit:
   parallel: true
   commands:
     prettier:
-      glob: "*.{js,es6}"
-      include: "index.js|client|commands"
+      glob: '*.{js,es6}'
+      include: 'index.js|client|commands'
       run: yarn prettier --list-different {staged_files}
     eslint-js:
-      glob: "*.js"
-      include: "index.js|client|commands"
+      glob: '*.js'
+      include: 'index.js|client|commands'
       run: yarn eslint -f compact {staged_files}
 
 commands: &commands
   yarn-install:
     files: git diff --name-online HEAD master
-    glob: "{package.json,yarn.lock}"
+    glob: '{package.json,yarn.lock}'
     run: yarn install
 
 post-checkout:
