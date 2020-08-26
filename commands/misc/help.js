@@ -8,7 +8,7 @@ module.exports.help = {
   category: 'misc',
 };
 
-module.exports.execute = (bot, message) => {
+module.exports.execute = ({ bot, message }) => {
   let str = '';
 
   bot.commands.forEach((command) => {
