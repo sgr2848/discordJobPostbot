@@ -39,10 +39,10 @@ pre-commit:
       glob: "*.{js,es6}"
       include: "index.js|client|commands"
       run: yarn prettier --list-different {staged_files}
-    # eslint-js:
-    #   glob: "*.js"
-    #   include: "index.js|client|commands"
-    #   run: yarn eslint -f compact {staged_files}
+    eslint-js:
+      glob: "*.js"
+      include: "index.js|client|commands"
+      run: yarn eslint -f compact {staged_files}
 
 commands: &commands
   yarn-install:
