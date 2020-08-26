@@ -3,6 +3,7 @@
 Discord bot that updates server with new job applications and their descriptions on computer science, data science, etc.
 
 ## Installation
+
 - Node v12 and up is required to run the bot
 - Clone the repo
 - Run `yarn` to install dependencies
@@ -11,7 +12,9 @@ Discord bot that updates server with new job applications and their descriptions
 - Run `node index.js` in the terminal and your bot should be online
 
 ## Development Setup
+
 Prettier
+
 ```sh
 yarn prettier --write .
 ```
