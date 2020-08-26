@@ -1,3 +1,8 @@
 language: node_js
 node_js:
+<<<<<<< HEAD
+  - 7
+  
+=======
   - 12
+>>>>>>> 6531116cd39b86cd2d9897022a8c6ec072c03773
