@@ -18,3 +18,9 @@ Prettier
 ```sh
 yarn prettier --write .
 ```
+
+ESLint
+
+```sh
+npx eslint --fix .
+```
