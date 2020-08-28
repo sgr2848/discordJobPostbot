@@ -21,17 +21,23 @@ const loadCommands = (dir = './commands') => {
         typeof pull.help.name === 'string' &&
         typeof pull.help.category === 'string'
       ) {
+        if (pull.help.category !== dirs) {
+          return console.warn(
+            `${warning} The category '${pull.help.category}' of the command '${pull.help.name}' does not match the directory name '${dirs}'`
+          );
+        }
+
         if (bot.commands.get(pull.help.name)) {
           return console.warn(
-            `${warning} Two or more commands have the same name ${pull.help.name}`
+            `${warning} Two or more commands have the same name '${pull.help.name}'`
           );
         }
         bot.commands.set(pull.help.name, pull);
 
-        console.log(`${success} Loaded command ${pull.help.name} from ${dir}${sep}${dirs}`);
+        console.log(`${success} Loaded command '${pull.help.name}' from '${dirs}${sep}${file}'`);
       } else {
         console.error(
-          `${error} Error loading command in ${dir}${sep}${dirs}. You either have a missing help.name or help.name is not a string, or you have a missing help.category or help.category is not a string`
+          `${error} Error loading command in '${dir}${sep}${dirs}'. You either have a missing help.name or help.name is not a string, or you have a missing help.category or help.category is not a string`
         );
         continue;
       }
@@ -39,7 +45,7 @@ const loadCommands = (dir = './commands') => {
       if (pull.help.aliases && typeof pull.help.aliases === 'object') {
         pull.help.aliases.forEach((alias) => {
           if (bot.aliases.get(alias)) {
-            return console.warn(`${warning} Two or more commands have the same alias ${alias}`);
+            return console.warn(`${warning} Two or more commands have the same alias '${alias}'`);
           }
           bot.aliases.set(alias, pull.help.name);
         });
