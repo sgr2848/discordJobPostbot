@@ -5,8 +5,8 @@ import json
 from urllib import request
 import re
 from bs4 import BeautifulSoup
-import time,os
-from dotenv import load_dotenv 
+import time
+from db_barell import get_db
 from selenium.webdriver.firefox.options import Options
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from selenium.webdriver.common.keys import Keys
@@ -14,8 +14,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
-load_dotenv(os.path.join(os.path.dirname(__file__), '.env'), verbose=True)
-SQL_CRED = os.environ.get("ENDPOINT")
+
 def get_job_object(posting_url):
     return_object = {}
     src = request.urlopen(posting_url).read()
@@ -46,7 +45,7 @@ def get_job_object(posting_url):
         return_object['apply_link'] = apply_link
     except:
         print(f'{return_object["company_name"]} doesnt have apply link')
-    return_object['job_description'] = soup.find('div', class_='jobsearch-jobDescriptionText').get_text()
+    return_object['job_description'] = soup.find('div', class_='jobsearch-jobDescriptionText').get_text()  
     return return_object
     
 def run_indeed(limit=20):
@@ -59,8 +58,7 @@ def run_indeed(limit=20):
     # engine = selenium.webdriver.Firefox(options=op)
     #for gecko browser
 
-    current_page = 0
-    counter = 0
+    current_page = 1
     try:
         engine = selenium.webdriver.Firefox()
         #for chromium
@@ -91,7 +89,6 @@ def run_indeed(limit=20):
             future = {executor.submit(get_job_object,i): i for i in job_href}
             for f in as_completed(future):
                 output_json.append(f.result())
-
         json.dump(output_json,open("indeed.json","w"))
         engine.close()
     except Exception as e:
