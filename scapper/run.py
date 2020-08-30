@@ -11,4 +11,3 @@ def run():
         futures = {executor.submit(r_method, f"{i}()"): i for i in run_methods}
 if __name__ == "__main__":
     run()
-    run_indeed()
