@@ -1,11 +1,10 @@
-import urllib
+import urllib.request
 import selenium
 import lxml
 import json
 import re
 from bs4 import BeautifulSoup
 import time
-from db_barell import get_db
 from selenium.webdriver.firefox.options import Options
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from selenium.webdriver.common.keys import Keys
@@ -59,7 +58,7 @@ def get_job_object(posting_url):
     return return_object
 
 
-def run_indeed(limit=20):
+def run_indeed():
     """
        limit<int> :  total number of job to add to db 
     """
@@ -110,8 +109,7 @@ def run_indeed(limit=20):
                     output_json.append(f.result())
             json.dump(output_json, open("indeed.json", "w"))
 
-        except:
-            print(e)
+        except: 
             print("Timeout")
             print("closing selenium")
             engine.close()
