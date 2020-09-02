@@ -3,6 +3,7 @@ import selenium
 import lxml
 import json
 import re
+import pickle
 from bs4 import BeautifulSoup
 import time
 from selenium.webdriver.firefox.options import Options
@@ -10,6 +11,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from db_barell import get_db
+from Crypto.Hash import SHA256
 from selenium.webdriver.common.by import By
 
 HEADER = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
@@ -55,22 +58,29 @@ def get_job_object(posting_url):
         print(f'{return_object["company_name"]} doesnt have apply link')
     return_object['job_description'] = soup.find(
         'div', class_='jobsearch-jobDescriptionText').get_text()
+    low_des = return_object['job_description'].encode(
+            'ascii', 'ignore').decode('unicode_escape').replace('\n', '').lower()
+ 
     return return_object
-
 
 def run_indeed():
     """
-       limit<int> :  total number of job to add to db 
+        conn : database connection
+        limit<int> :  total number of job to add to db 
     """
     # remove comment for headless option
     # op = Options()
     # op.headless = True
     # engine = selenium.webdriver.Firefox(options=op)
     # for gecko browser
-    engine = selenium.webdriver.Firefox()
+    # engine = selenium.webdriver.Firefox()
     # for chromium
-    # engine = selenium.webdriver.Chrome()
+    db = get_db()
+    db = db["test"]
+    engine = selenium.webdriver.Chrome()
     # setting 10 sec timeout
+    print("Current session is {}".format(engine.session_id))
+    print("starting selenium for indeed")
     engine.set_page_load_timeout(10)
     current_page = 1
     try:
@@ -99,25 +109,32 @@ def run_indeed():
                 f"//div[@id='{i[4:len(i)-1]}']//h2[@class='title']").find_element_by_tag_name("a") for i in job_id_list]
             del job_id_list
             job_href = [i.get_attribute("href") for i in job_listing_sel_gen]
-            output_json = []
             print("closing selenium")
             engine.close()
+            listing_collection = []
+
             with ThreadPoolExecutor(max_workers=5) as executor:
                 future = {executor.submit(
                     get_job_object, i): i for i in job_href}
                 for f in as_completed(future):
-                    output_json.append(f.result())
-            json.dump(output_json, open("indeed.json", "w"))
+                    obj = f.result()
+                    listing_collection.append(obj)
+                    
+            posting = db.posting
+            res = posting.insert_many(listing_collection)
+            res = list(res.inserted_ids)
+            pickle.dump(res, open("indeed_id.json", "wb"))
+            print(res)    
 
-        except: 
+        except Exception as e: 
             print("Timeout")
-            print("closing selenium")
-            engine.close()
+            print(f"{e}")
+
     except Exception as e:
-        print(e)
+        print(f"{e} from indeed")
         print("closing selenium")
-        engine.close()
 
 
-if __name__ == "__main__":
-    run_indeed()
+
+# if __name__ == "__main__":
+#     run_indeed()

@@ -11,6 +11,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+import pickle
+from db_barell import get_db
 
 
 HEADER = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
@@ -38,18 +40,31 @@ def get_job_objects(posting_url):
         return_object['job_title'] = cmpy_desp_list[1]
         return_object['company_location'] = cmpy_desp_list[2]       
         return_object['apply_link'] = posting_url
-        return_object["job_description"] = soup.find('div',id="JobDescriptionContainer").get_text()
+        return_object["job_description"] = soup.find('div', id="JobDescriptionContainer").get_text()
+        low_des = return_object['job_description'].encode(
+            'ascii', 'ignore').decode('unicode_escape').replace('\n', '').lower()
+        hash_text = f"{return_object['company_name'].lower()}{return_object['job_title'].lower()}{low_des}".replace(" ", "")
         return return_object
     except Exception as e:
         print(e)
 
 def run_glassdoor():
+    '''
+    conn : database connection
+    '''
+
     # https://www.glassdoor.com/Job/index.htm
     op = Options()
     op.headless = True
     engine = selenium.webdriver.Firefox(options=op)
-    # engine = selenium.webdriver.Firefox()
+    engine = selenium.webdriver.Firefox()
+    db = get_db()
+    print(db.list_database_names())
+    db = db["test"]    
+    # engine = selenium.webdriver.Chrome()
+    print("Current session is {}".format(engine.session_id))
     engine.set_page_load_timeout(10)
+    print("starting selenium for glassdoor")
     try:        
         engine.get("https://www.glassdoor.com/Job/index.htm")
         engine.find_element_by_xpath("//input[@id='KeywordSearch']").send_keys('software engineer')
@@ -69,17 +84,22 @@ def run_glassdoor():
         print("closing selenium")
         engine.close()
         posting_links = list(posting_links)
-        output_json = [] 
+        listing_collection = [] 
         with ThreadPoolExecutor(max_workers=5) as executor:
             future = {executor.submit(get_job_objects, i) for i in posting_links}
             for f in as_completed(future):
-                output_json.append(f.result())
-        json.dump(output_json, open("glassdoor.json", "w"))
+                listing_collection.append(f.result())
+        posting = db.posting
+        res = posting.insert_many(listing_collection)
+        res = res.inserted_ids
+        print(res)
+        pickle.dump(res, open("glassdoor_id.json", "wb"))
+
 
         
     except Exception as e:
         print(e)
-        engine.close()
+
 
 
 if __name__ == "__main__":
