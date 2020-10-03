@@ -12,7 +12,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import pickle
-from db_barell import get_db
+
 
 
 HEADER = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
@@ -32,7 +32,10 @@ def get_job_objects(posting_url):
         soup = BeautifulSoup(src, 'lxml',  from_encoding="iso-8859-1")
         cmpy_descrip = soup.findAll("div", class_=re.compile("css-ur1szg"))[0]
         # print(company_descrip)
-        cmpy_descrip.span.decompose()
+        try:
+            cmpy_descrip.span.decompose()
+        except:
+            print("cannot decompose - glassdoor posting_url")
         cmpy_desp_list = []
         for i in cmpy_descrip.findAll("div"):
             cmpy_desp_list.append(i.get_text())     
@@ -49,18 +52,13 @@ def get_job_objects(posting_url):
         print(e)
 
 def run_glassdoor():
-    '''
-    conn : database connection
-    '''
-
+    
     # https://www.glassdoor.com/Job/index.htm
     op = Options()
     op.headless = True
     engine = selenium.webdriver.Firefox(options=op)
     engine = selenium.webdriver.Firefox()
-    db = get_db()
-    print(db.list_database_names())
-    db = db["test"]    
+       
     # engine = selenium.webdriver.Chrome()
     print("Current session is {}".format(engine.session_id))
     engine.set_page_load_timeout(10)
@@ -89,11 +87,7 @@ def run_glassdoor():
             future = {executor.submit(get_job_objects, i) for i in posting_links}
             for f in as_completed(future):
                 listing_collection.append(f.result())
-        posting = db.posting
-        res = posting.insert_many(listing_collection)
-        res = res.inserted_ids
-        print(res)
-        pickle.dump(res, open("glassdoor_id.json", "wb"))
+        return listing_collection
 
 
         

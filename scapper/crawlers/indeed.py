@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from db_barell import get_db
+
 from Crypto.Hash import SHA256
 from selenium.webdriver.common.by import By
 
@@ -55,12 +55,12 @@ def get_job_object(posting_url):
         apply_link = soup.find(id='applyButtonLinkContainer').find('a')['href']
         return_object['apply_link'] = apply_link
     except:
-        print(f'{return_object["company_name"]} doesnt have apply link')
+        print(f'{return_object["company_name"]} doesnt have apply link - from Indeed')
     return_object['job_description'] = soup.find(
         'div', class_='jobsearch-jobDescriptionText').get_text()
     low_des = return_object['job_description'].encode(
             'ascii', 'ignore').decode('unicode_escape').replace('\n', '').lower()
- 
+    
     return return_object
 
 def run_indeed():
@@ -73,11 +73,10 @@ def run_indeed():
     # op.headless = True
     # engine = selenium.webdriver.Firefox(options=op)
     # for gecko browser
-    # engine = selenium.webdriver.Firefox()
+    engine = selenium.webdriver.Firefox()
     # for chromium
-    db = get_db()
-    db = db["test"]
-    engine = selenium.webdriver.Chrome()
+
+    # engine = selenium.webdriver.Chrome()
     # setting 10 sec timeout
     print("Current session is {}".format(engine.session_id))
     print("starting selenium for indeed")
@@ -119,12 +118,7 @@ def run_indeed():
                 for f in as_completed(future):
                     obj = f.result()
                     listing_collection.append(obj)
-                    
-            posting = db.posting
-            res = posting.insert_many(listing_collection)
-            res = list(res.inserted_ids)
-            pickle.dump(res, open("indeed_id.json", "wb"))
-            print(res)    
+            json.dump(listing_collection, open("indeed_id.json", "w"))
 
         except Exception as e: 
             print("Timeout")
@@ -136,5 +130,5 @@ def run_indeed():
 
 
 
-# if __name__ == "__main__":
-#     run_indeed()
+if __name__ == "__main__":
+    run_indeed()
