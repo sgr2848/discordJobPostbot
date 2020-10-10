@@ -1,5 +1,6 @@
 import urllib.request
 import selenium
+from datetime import datetime
 import lxml
 import json
 import re
@@ -11,8 +12,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+import hashlib
 import pickle
-
 
 
 HEADER = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
@@ -39,17 +40,19 @@ def get_job_objects(posting_url):
         cmpy_desp_list = []
         for i in cmpy_descrip.findAll("div"):
             cmpy_desp_list.append(i.get_text())     
-        return_object['company_name'] = cmpy_desp_list[0]
-        return_object['job_title'] = cmpy_desp_list[1]
-        return_object['company_location'] = cmpy_desp_list[2]       
-        return_object['apply_link'] = posting_url
-        return_object["job_description"] = soup.find('div', id="JobDescriptionContainer").get_text()
-        low_des = return_object['job_description'].encode(
-            'ascii', 'ignore').decode('unicode_escape').replace('\n', '').lower()
-        hash_text = f"{return_object['company_name'].lower()}{return_object['job_title'].lower()}{low_des}".replace(" ", "")
+        return_object['companyname'] = cmpy_desp_list[0]
+        return_object['jobtitle'] = cmpy_desp_list[1]
+        return_object['companylocation'] = cmpy_desp_list[2]       
+        return_object['applylink'] = posting_url
+        return_object["jobdescription"] = soup.find('div', id="JobDescriptionContainer").get_text()
+        low_des = return_object['applylink'].encode(
+            'ascii', 'ignore')
+        hash_text = hashlib.sha224(low_des).hexdigest()
+        return_object["id"] = hash_text
+        return_object["timestamps"] = datetime.now().timestamp()
         return return_object
     except Exception as e:
-        print(e)
+        print(e,"==Glassdoor")
 
 def run_glassdoor():
     
@@ -93,7 +96,6 @@ def run_glassdoor():
         
     except Exception as e:
         print(e)
-
 
 
 if __name__ == "__main__":
