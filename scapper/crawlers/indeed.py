@@ -4,6 +4,7 @@ import lxml
 import json
 import re
 import pickle
+from datetime import datetime
 from bs4 import BeautifulSoup
 import time
 from selenium.webdriver.firefox.options import Options
@@ -11,8 +12,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
-from Crypto.Hash import SHA256
+import hashlib
 from selenium.webdriver.common.by import By
 
 HEADER = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
@@ -29,7 +29,7 @@ def get_job_object(posting_url):
     request = urllib.request.Request(posting_url, None, HEADER)
     src = urllib.request.urlopen(request).read()
     soup = BeautifulSoup(src, 'lxml')
-    return_object['job_title'] = soup.findAll('div', class_=re.compile(
+    return_object['jobtitle'] = soup.findAll('div', class_=re.compile(
         'jobsearch-JobInfoHeader-title-container'))[0].get_text()
     # this give name and location of the company
     # return_object["company_name"] = soup.findAll('div', class_=re.compile(
@@ -44,23 +44,26 @@ def get_job_object(posting_url):
             pass
     name_l = list(filter(None, name_l))
     if len(name_l) == 3:
-        return_object['company_name'] = name_l[0]
-        return_object['company_location'] = name_l[-1]
-        return_object['reviews'] = "0 reviews"
+        return_object['companyname'] = name_l[0]
+        return_object['companylocation'] = name_l[-1]
+        # return_object['reviews'] = "0 reviews"
     else:
-        return_object['company_name'] = name_l[0]
-        return_object['company_location'] = name_l[-1]
-        return_object['reviews'] = name_l[1]
+        return_object['companyname'] = name_l[0]
+        return_object['companylocation'] = name_l[-1]
+        # return_object['reviews'] = name_l[1]
     try:
         apply_link = soup.find(id='applyButtonLinkContainer').find('a')['href']
-        return_object['apply_link'] = apply_link
+        return_object['applylink'] = apply_link
     except:
-        print(f'{return_object["company_name"]} doesnt have apply link - from Indeed')
-    return_object['job_description'] = soup.find(
+        print(f'{return_object["companyname"]} doesnt have apply link - from Indeed')
+        return 0
+    return_object['jobdescription'] = soup.find(
         'div', class_='jobsearch-jobDescriptionText').get_text()
-    low_des = return_object['job_description'].encode(
-            'ascii', 'ignore').decode('unicode_escape').replace('\n', '').lower()
-    
+    low_des = return_object['applylink'].encode(
+            'ascii', 'ignore')
+    hash_text = hashlib.sha224(low_des).hexdigest()
+    return_object["id"] = hash_text
+    return_object["timestamps"] = datetime.now().timestamp()    
     return return_object
 
 def run_indeed():
@@ -99,7 +102,7 @@ def run_indeed():
             for i in job_raw:
                 # the
                 if re.match('(^id="p_([a-z]|\d)+"$)|(^id="pj_([a-z]|\d)+"$)', i):
-                    print(i[4:len(i)-1])
+                    # print(i[4:len(i)-1])
                     job_id_list.append(i)
                 else:
                     pass
@@ -118,7 +121,9 @@ def run_indeed():
                 for f in as_completed(future):
                     obj = f.result()
                     listing_collection.append(obj)
-            json.dump(listing_collection, open("indeed_id.json", "w"))
+            listing_collection = list(filter(lambda x:x != 0,listing_collection))
+            
+            return listing_collection
 
         except Exception as e: 
             print("Timeout")
