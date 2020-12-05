@@ -9,7 +9,7 @@ def r_method(some_string):
 def insert_to_db(payload):
     db = db_conn()
     db.insert(payload)
-    print('addition to db completed')
+    
 def run():
     run_methods = ["run_indeed",'run_glassdoor']
     with ProcessPoolExecutor(max_workers=1) as executor:

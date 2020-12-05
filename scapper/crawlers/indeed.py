@@ -1,19 +1,19 @@
+from selenium.webdriver.common.by import By
+import hashlib
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.keys import Keys
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from selenium.webdriver.firefox.options import Options
+import time
+from bs4 import BeautifulSoup
+from datetime import datetime
 import urllib.request
 import selenium
 import lxml
 import json
 import re
-import pickle
-from datetime import datetime
-from bs4 import BeautifulSoup
-import time
-from selenium.webdriver.firefox.options import Options
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-import hashlib
-from selenium.webdriver.common.by import By
+
 
 HEADER = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -55,16 +55,18 @@ def get_job_object(posting_url):
         apply_link = soup.find(id='applyButtonLinkContainer').find('a')['href']
         return_object['applylink'] = apply_link
     except:
-        print(f'{return_object["companyname"]} doesnt have apply link - from Indeed')
+        print(
+            f'{return_object["companyname"]} doesnt have apply link - from Indeed')
         return 0
     return_object['jobdescription'] = soup.find(
         'div', class_='jobsearch-jobDescriptionText').get_text()
     low_des = return_object['applylink'].encode(
-            'ascii', 'ignore')
+        'ascii', 'ignore')
     hash_text = hashlib.sha224(low_des).hexdigest()
     return_object["id"] = hash_text
-    return_object["timestamps"] = datetime.now().timestamp()    
+    return_object["timestamps"] = datetime.now().timestamp()
     return return_object
+
 
 def run_indeed():
     """
@@ -121,18 +123,18 @@ def run_indeed():
                 for f in as_completed(future):
                     obj = f.result()
                     listing_collection.append(obj)
-            listing_collection = list(filter(lambda x:x != 0,listing_collection))
-            
+            listing_collection = list(
+                filter(lambda x: x != 0, listing_collection))
+
             return listing_collection
 
-        except Exception as e: 
+        except Exception as e:
             print("Timeout")
             print(f"{e}")
 
     except Exception as e:
         print(f"{e} from indeed")
         print("closing selenium")
-
 
 
 if __name__ == "__main__":

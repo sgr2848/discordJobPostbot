@@ -11,8 +11,8 @@ module.exports.help = {
 module.exports.execute = ({ message }) => {
   if (!message.mentions.users.size) {
     const avatarURL =
-      message.author.avatarURL({ size: 512, dynamic: true }) ||
-      'https://media1.tenor.com/images/8c409e6f39acc1bd796e8031747f19ad/tenor.gif';
+      message.author.avatarURL({ size: 256, dynamic: true }) ||
+      'https://media.giphy.com/media/kFgzrTt798d2w/giphy.gif';
 
     const avatarEmbed = new MessageEmbed()
       .setTitle(`${message.author.tag}'s avatar`)
@@ -23,7 +23,7 @@ module.exports.execute = ({ message }) => {
 
   message.mentions.users.map((user) => {
     const avatarURL =
-      user.avatarURL({ size: 512, dynamic: true }) ||
+      user.avatarURL({ size: 256, dynamic: true }) ||
       'https://media1.tenor.com/images/8c409e6f39acc1bd796e8031747f19ad/tenor.gif';
 
     const avatarEmbed = new MessageEmbed().setTitle(`${user.tag}'s avatar`).setImage(avatarURL);

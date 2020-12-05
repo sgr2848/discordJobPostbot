@@ -13,7 +13,6 @@ module.exports.execute = ({ bot, message, args }) => {
 
   if (args.length > 0) {
     str += `**Category: ${args[0].toUpperCase()}**\n\n`;
-
     bot.commands.forEach((command) => {
       if (args[0].toLowerCase() === command.help.category) {
         str += displayCommandInfo({ bot, command });
