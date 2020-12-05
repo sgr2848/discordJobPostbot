@@ -9,6 +9,18 @@ module.exports.help = {
   usage: 'jobme [number of response]',
   category: 'main',
 };
+function get_formatted_date(timestamp_val) {
+  let d_obj = new Date(timestamp_val);
+  let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  let year = d_obj.getFullYear();
+  let month = months[d_obj.getMonth()];
+  var date = d_obj.getDate();
+  var hour = d_obj.getHours();
+  var min = d_obj.getMinutes();
+  var sec = d_obj.getSeconds();
+  var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec;
+  return time;
+}
 
 module.exports.execute = ({ message }) => {
   const req_url = `http://${process.env.BACKEND_HOST_IP}:${process.env.BACKEND_HOST_PORT}/get_data?limit=10`;
@@ -17,11 +29,13 @@ module.exports.execute = ({ message }) => {
     .then((res) => {
       const json_data = res.data;
       const job_fields = [];
+
       json_data.forEach((e) => {
-        console.log(e.Job_title);
+        // console.log(e.Job_title);
+        const scrapped_time = get_formatted_date(e.Timestamps);
         const current_field = {
           name: e.Job_title,
-          value: `Company Name: ${e.Cmp_name} \n Location : ${e.Cmp_location} [Apply](${e.Apply_link})`,
+          value: `Company Name: ${e.Cmp_name} \n Location : ${e.Cmp_location} \n Scrapped Date : ${scrapped_time} [Apply](${e.Apply_link})`,
         };
         job_fields.push(current_field);
       });
