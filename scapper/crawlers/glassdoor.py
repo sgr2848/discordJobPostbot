@@ -3,7 +3,7 @@ import selenium
 from datetime import datetime
 import lxml
 import json
-from utils import shorten_url
+from .link_s import shorten_url
 import re
 import os
 from bs4 import BeautifulSoup
@@ -48,6 +48,7 @@ def get_job_objects(posting_url):
         return_object['jobtitle'] = cmpy_desp_list[1]
         return_object['companylocation'] = cmpy_desp_list[2]
         return_object['applylink'] = shorten_url(posting_url)
+        # return_object['applylink'] = posting_url
         return_object["jobdescription"] = soup.find(
             'div', id="JobDescriptionContainer").get_text()
         low_des = return_object['applylink'].encode(
@@ -63,9 +64,9 @@ def get_job_objects(posting_url):
 def run_glassdoor():
 
     # https://www.glassdoor.com/Job/index.htm
-    op = Options()
-    op.headless = True
-    engine = selenium.webdriver.Firefox(options=op)
+    # op = Options()
+    # op.headless = True
+    # engine = selenium.webdriver.Firefox(options=op)
     engine = selenium.webdriver.Firefox()
 
     # engine = selenium.webdriver.Chrome()

@@ -19,34 +19,35 @@ class db_conn:
         self.port = os.environ.get("HOST_PORT")
         self.engine = self.get_connection()
         print("started __init__ for db_conn")
+
     def get_connection(self):
         try:
-            conn = psycopg2.connect(f"dbname='career_bot' user='{self.usr_name}' password='{self.usr_pass}' host='{self.host}' port='{self.port}'")
+            conn = psycopg2.connect(
+                f"dbname='career_bot' user='{self.usr_name}' password='{self.usr_pass}' host='{self.host}' port='{self.port}'")
             print("connected to db")
             return conn
         except Exception as e:
             print("Couldn't access the db")
+
     def insert(self, payload):
         '''
             payload should be a list of dictionary of jobs
         '''
         print("started insertion")
+        print(payload)
         columns = payload[0].keys()
         print(columns)
-        query = 'INSERT INTO cs_bot.Jobs ({}) VALUES %s'.format(",".join(columns))
+        query = 'INSERT INTO cs_bot.jobs ({}) VALUES %s'.format(
+            ",".join(columns))
         print(query)
         values = [[value for value in item.values()] for item in payload]
         cursor = self.engine.cursor()
         # cursor.execute("Select * FROM cs_bot.Jobs LIMIT 0")
         # colnames = [desc[0] for desc in cursor.description]
         # print(colnames)
-        execute_values(cursor,query,values)
+        execute_values(cursor, query, values)
         self.engine.commit()
         cursor.close()
 
-
-
-
-
-
-
+if __name__ == "__main__":
+    db = db_conn()

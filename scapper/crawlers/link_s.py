@@ -25,6 +25,7 @@ def shorten_url(url):
 
     if (r.status_code == requests.codes.ok):
         link = r.json()
+        print(link["shortUrl"])
         return link["shortUrl"]
     else:
-        print(r.status_code)
+        print("can't")

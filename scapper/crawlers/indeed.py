@@ -13,7 +13,7 @@ import selenium
 import lxml
 import json
 import re
-from utils import shorten_url
+from .link_s import shorten_url
 
 
 HEADER = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
@@ -32,9 +32,6 @@ def get_job_object(posting_url):
     soup = BeautifulSoup(src, 'lxml')
     return_object['jobtitle'] = soup.findAll('div', class_=re.compile(
         'jobsearch-JobInfoHeader-title-container'))[0].get_text()
-    # this give name and location of the company
-    # return_object["company_name"] = soup.findAll('div', class_=re.compile(
-    #     'icl-u-lg-mr--sm icl-u-xs-mr--xs'))[0].get_text()
     rating_l_div = soup.findAll('div', class_=re.compile(
         'jobsearch-InlineCompanyRating'))[0]
     name_l = []
@@ -51,14 +48,16 @@ def get_job_object(posting_url):
     else:
         return_object['companyname'] = name_l[0]
         return_object['companylocation'] = name_l[-1]
-        # return_object['reviews'] = name_l[1]
     try:
         apply_link = soup.find(id='applyButtonLinkContainer').find('a')['href']
-        return_object['applylink'] = shorten_url(apply_link)
+        print(apply_link)
+        # return_object['applylink'] = shorten_url(apply_link)
+        return_object['applylink'] = apply_link
+
     except:
         print(
             f'{return_object["companyname"]} doesnt have apply link - from Indeed')
-        return 0
+        # return 0
     return_object['jobdescription'] = soup.find(
         'div', class_='jobsearch-jobDescriptionText').get_text()
     low_des = return_object['applylink'].encode(
@@ -127,7 +126,7 @@ def run_indeed():
             listing_collection = list(
                 filter(lambda x: x != 0, listing_collection))
 
-            return listing_collection
+            print(listing_collection)
 
         except Exception as e:
             print("Timeout")
@@ -136,7 +135,3 @@ def run_indeed():
     except Exception as e:
         print(f"{e} from indeed")
         print("closing selenium")
-
-
-if __name__ == "__main__":
-    run_indeed()

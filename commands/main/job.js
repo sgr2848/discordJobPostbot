@@ -36,7 +36,7 @@ function get_formatted_date(timestamp_val) {
 }
 
 module.exports.execute = ({ message }) => {
-  const req_url = `http://${process.env.BACKEND_HOST_IP}:${process.env.BACKEND_HOST_PORT}/get_data?limit=10`;
+  const req_url = `http://${process.env.BACKEND_HOST_IP}:${process.env.BACKEND_HOST_PORT}/get_data?limit=15`;
   axios
     .get(req_url)
     .then((res) => {
@@ -46,9 +46,10 @@ module.exports.execute = ({ message }) => {
       json_data.forEach((e) => {
         // console.log(e.Job_title);
         const scrapped_time = get_formatted_date(e.Timestamps);
+        console.log(scrapped_time);
         const current_field = {
           name: e.Job_title,
-          value: `Company Name: ${e.Cmp_name} \n Location : ${e.Cmp_location} \n Scrapped Date : ${scrapped_time} [Apply](${e.Apply_link})`,
+          value: `Company Name: ${e.Cmp_name} \n Location : ${e.Cmp_location} \n [Apply](${e.Apply_link})`,
         };
         job_fields.push(current_field);
       });
