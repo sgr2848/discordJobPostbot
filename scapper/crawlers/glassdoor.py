@@ -3,7 +3,9 @@ import selenium
 from datetime import datetime
 import lxml
 import json
+from utils import shorten_url
 import re
+import os
 from bs4 import BeautifulSoup
 import time
 from selenium.webdriver.firefox.options import Options
@@ -45,7 +47,7 @@ def get_job_objects(posting_url):
         return_object['companyname'] = cmpy_desp_list[0]
         return_object['jobtitle'] = cmpy_desp_list[1]
         return_object['companylocation'] = cmpy_desp_list[2]
-        return_object['applylink'] = posting_url
+        return_object['applylink'] = shorten_url(posting_url)
         return_object["jobdescription"] = soup.find(
             'div', id="JobDescriptionContainer").get_text()
         low_des = return_object['applylink'].encode(
@@ -99,7 +101,7 @@ def run_glassdoor():
                 listing_collection.append(f.result())
         with open('data.txt', 'w') as outfile:
             json.dump(listing_collection, outfile)
-        print(listing_collection)
+        return listing_collection
 
     except Exception as e:
         print(e)

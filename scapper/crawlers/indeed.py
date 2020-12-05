@@ -13,6 +13,7 @@ import selenium
 import lxml
 import json
 import re
+from utils import shorten_url
 
 
 HEADER = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
@@ -53,7 +54,7 @@ def get_job_object(posting_url):
         # return_object['reviews'] = name_l[1]
     try:
         apply_link = soup.find(id='applyButtonLinkContainer').find('a')['href']
-        return_object['applylink'] = apply_link
+        return_object['applylink'] = shorten_url(apply_link)
     except:
         print(
             f'{return_object["companyname"]} doesnt have apply link - from Indeed')

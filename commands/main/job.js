@@ -10,15 +10,28 @@ module.exports.help = {
   category: 'main',
 };
 function get_formatted_date(timestamp_val) {
-  let d_obj = new Date(timestamp_val);
-  let months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  let year = d_obj.getFullYear();
-  let month = months[d_obj.getMonth()];
-  var date = d_obj.getDate();
-  var hour = d_obj.getHours();
-  var min = d_obj.getMinutes();
-  var sec = d_obj.getSeconds();
-  var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec;
+  const d_obj = new Date(timestamp_val);
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  const year = d_obj.getFullYear();
+  const month = months[d_obj.getMonth()];
+  const date = d_obj.getDate();
+  const hour = d_obj.getHours();
+  const min = d_obj.getMinutes();
+  const sec = d_obj.getSeconds();
+  const time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec;
   return time;
 }
 
