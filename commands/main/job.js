@@ -46,14 +46,14 @@ module.exports.execute = ({ message }) => {
       json_data.forEach((e) => {
         // console.log(e.Job_title);
         const scrapped_time = get_formatted_date(e.Timestamps);
-
+        url = 'http://'.concat(e.Apply_link);
         const current_field = {
           name: e.Job_title,
-          value: `Company Name: ${e.Cmp_name} \n Location : ${e.Cmp_location} \n Scrapped Time : ${scrapped_time} [Apply](${e.Apply_link})`,
+          value: `Company Name: ${e.Cmp_name} \n Location : ${e.Cmp_location} \n Scrapped Time : ${scrapped_time} [Apply](${url})`,
         };
         job_fields.push(current_field);
       });
-      console.log(job_fields);
+
       const embed_val = {
         color: 0x0088ef,
         title: 'JOBS!!!!!!! APPLY!!!!!',
