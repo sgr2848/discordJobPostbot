@@ -34,7 +34,6 @@ class db_conn:
             payload should be a list of dictionary of jobs
         '''
         print("started insertion")
-        print(payload)
         columns = payload[0].keys()
         print(columns)
         query = 'INSERT INTO cs_bot.jobs ({}) VALUES %s'.format(

@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from selenium.webdriver.firefox.options import Options
 import time
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import urllib.request
 import selenium
 import lxml
@@ -55,8 +55,10 @@ def get_job_object_sel(posting_url):
                 'ascii', 'ignore')
             hash_text = hashlib.sha224(low_des).hexdigest()
             return_object["id"] = hash_text
-        return_object["timestamps"] = datetime.now().timestamp()
-
+        now = datetime.now(timezone.utc)
+        epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+        posix_timestamp_millis = posix_timestamp_micros // 1000
+        return_object["timestamps"] = posix_timestamp_millis
     except Exception as err:
         print(err)
         engine.close()
@@ -111,13 +113,13 @@ def get_job_object(posting_url):
             'ascii', 'ignore')
         hash_text = hashlib.sha224(low_des).hexdigest()
         return_object["id"] = hash_text
-        print(f"line 61 - {err}")
 
     return_object['jobdescription'] = soup.find(
         'div', class_='jobsearch-jobDescriptionText').get_text()
-
-    return_object["timestamps"] = datetime.now().timestamp()
-
+    now = datetime.now(timezone.utc)
+    epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+    posix_timestamp_millis = posix_timestamp_micros // 1000
+    return_object["timestamps"] = posix_timestamp_millis
     return return_object
 
 
@@ -169,7 +171,6 @@ def run_indeed(use_sel=False):
             print("closing selenium")
             engine.close()
             listing_collection = []
-            print(job_href)
             if not use_sel:
                 with ThreadPoolExecutor(max_workers=5) as executor:
                     future = {executor.submit(
@@ -177,9 +178,7 @@ def run_indeed(use_sel=False):
                     for f in as_completed(future):
                         obj = f.result()
                         listing_collection.append(obj)
-                print(listing_collection)
-                listing_collection = list(
-                    filter(lambda x: x != 0, listing_collection))
+
             else:
                 with ThreadPoolExecutor(max_workers=5) as executor:
                     future = {executor.submit(
@@ -187,13 +186,13 @@ def run_indeed(use_sel=False):
                     for f in as_completed(future):
                         obj = f.result()
                         listing_collection.append(obj)
-                print(listing_collection)
-                listing_collection = list(
-                    filter(lambda x: x != 0, listing_collection))
-            print(listing_collection)
 
+            listing_collection = list(
+                filter(lambda x: x != 0, listing_collection))
+            print("INDEED RETURNING COLLECTION")
+            return listing_collection
         except Exception as e:
-            print("Timeout")
+            print("Some err")
             print(f"{e}")
 
     except Exception as e:
