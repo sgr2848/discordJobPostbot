@@ -57,6 +57,7 @@ def get_job_object_sel(posting_url):
             return_object["id"] = hash_text
         now = datetime.now(timezone.utc)
         epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
+        posix_timestamp_micros = (now - epoch) // timedelta(microseconds=1)
         posix_timestamp_millis = posix_timestamp_micros // 1000
         return_object["timestamps"] = posix_timestamp_millis
     except Exception as err:
