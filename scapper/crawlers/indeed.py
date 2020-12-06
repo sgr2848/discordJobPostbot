@@ -16,16 +16,63 @@ import re
 from .link_s import shorten_url
 
 
-HEADER = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'Referer': 'https://cssspritegenerator.com',
-          'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
-          'Accept-Encoding': 'none',
-          'Accept-Language': 'en-US,en;q=0.8',
-          'Connection': 'keep-alive'}
+def get_job_object_sel(posting_url):
+    '''
+        Much more efficient in finding the elements but is slower than bs4
+    '''
+    return_object = {}
+    op = Options()
+    op.headless = True
+    engine = selenium.webdriver.Firefox(options=op)
+    engine.set_page_load_timeout(10)
+    try:
+        engine.get(posting_url)
+        return_object['jobtitle'] = engine.find_element_by_xpath(
+            "//h1[@class='icl-u-xs-mb--xs icl-u-xs-mt--none jobsearch-JobInfoHeader-title']").text
+        name_addr = list(engine.find_element_by_xpath(
+            "//div[@class='jobsearch-InlineCompanyRating icl-u-xs-mt--xs jobsearch-DesktopStickyContainer-companyrating']").find_elements_by_tag_name("div"))
+        if len(name_addr) == 3:
+            return_object['companyname'] = name_addr[0].text
+            return_object['companylocation'] = name_addr[-1].text
+            # return_object['reviews'] = "0 reviews"
+        else:
+            return_object['companyname'] = name_addr[0].text
+            return_object['companylocation'] = name_addr[-1].text
+        return_object['jobdescription'] = engine.find_element_by_xpath(
+            "//div[@id='jobDescriptionText']").text
+        try:
+            apply_button = list(engine.find_element_by_xpath(
+                "//div[@id='applyButtonLinkContainer']").find_elements_by_tag_name('a'))
+            return_object['applylink'] = shorten_url(
+                apply_button[0].get_attribute('href'))
+            low_des = return_object['applylink'].encode(
+                'ascii', 'ignore')
+            hash_text = hashlib.sha224(low_des).hexdigest()
+            return_object["id"] = hash_text
+        except Exception as err:
+            return_object['applylink'] = shorten_url(posting_url)
+            low_des = return_object['applylink'].encode(
+                'ascii', 'ignore')
+            hash_text = hashlib.sha224(low_des).hexdigest()
+            return_object["id"] = hash_text
+        return_object["timestamps"] = datetime.now().timestamp()
+
+    except Exception as err:
+        print(err)
+        engine.close()
+
+    engine.close()
+    return return_object
 
 
 def get_job_object(posting_url):
+    HEADER = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.64 Safari/537.11',
+              'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+              'Referer': 'https://cssspritegenerator.com',
+              'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3',
+              'Accept-Encoding': 'none',
+              'Accept-Language': 'en-US,en;q=0.8',
+              'Connection': 'keep-alive'}
     return_object = {}
     request = urllib.request.Request(posting_url, None, HEADER)
     src = urllib.request.urlopen(request).read()
@@ -49,26 +96,32 @@ def get_job_object(posting_url):
         return_object['companyname'] = name_l[0]
         return_object['companylocation'] = name_l[-1]
     try:
-        apply_link = soup.find(id='applyButtonLinkContainer').find('a')['href']
+        apply_link = soup.find(
+            "div", id='applyButtonLinkContainer').find('a')['href']
+        return_object['applylink'] = shorten_url(apply_link)
         print(apply_link)
-        # return_object['applylink'] = shorten_url(apply_link)
-        return_object['applylink'] = apply_link
+        low_des = return_object['applylink'].encode(
+            'ascii', 'ignore')
+        hash_text = hashlib.sha224(low_des).hexdigest()
+        return_object["id"] = hash_text
 
-    except:
-        print(
-            f'{return_object["companyname"]} doesnt have apply link - from Indeed')
-        # return 0
+    except Exception as err:
+        return_object['applylink'] = shorten_url(posting_url)
+        low_des = return_object['applylink'].encode(
+            'ascii', 'ignore')
+        hash_text = hashlib.sha224(low_des).hexdigest()
+        return_object["id"] = hash_text
+        print(f"line 61 - {err}")
+
     return_object['jobdescription'] = soup.find(
         'div', class_='jobsearch-jobDescriptionText').get_text()
-    low_des = return_object['applylink'].encode(
-        'ascii', 'ignore')
-    hash_text = hashlib.sha224(low_des).hexdigest()
-    return_object["id"] = hash_text
+
     return_object["timestamps"] = datetime.now().timestamp()
+
     return return_object
 
 
-def run_indeed():
+def run_indeed(use_sel=False):
     """
         conn : database connection
         limit<int> :  total number of job to add to db 
@@ -116,16 +169,27 @@ def run_indeed():
             print("closing selenium")
             engine.close()
             listing_collection = []
-
-            with ThreadPoolExecutor(max_workers=5) as executor:
-                future = {executor.submit(
-                    get_job_object, i): i for i in job_href}
-                for f in as_completed(future):
-                    obj = f.result()
-                    listing_collection.append(obj)
-            listing_collection = list(
-                filter(lambda x: x != 0, listing_collection))
-
+            print(job_href)
+            if not use_sel:
+                with ThreadPoolExecutor(max_workers=5) as executor:
+                    future = {executor.submit(
+                        get_job_object, i): i for i in job_href}
+                    for f in as_completed(future):
+                        obj = f.result()
+                        listing_collection.append(obj)
+                print(listing_collection)
+                listing_collection = list(
+                    filter(lambda x: x != 0, listing_collection))
+            else:
+                with ThreadPoolExecutor(max_workers=5) as executor:
+                    future = {executor.submit(
+                        get_job_object_sel, i): i for i in job_href}
+                    for f in as_completed(future):
+                        obj = f.result()
+                        listing_collection.append(obj)
+                print(listing_collection)
+                listing_collection = list(
+                    filter(lambda x: x != 0, listing_collection))
             print(listing_collection)
 
         except Exception as e:

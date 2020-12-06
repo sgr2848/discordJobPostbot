@@ -1,4 +1,4 @@
-from crawlers import run_glassdoor, run_indeed
+from scapper.crawlers import run_glassdoor, run_indeed
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import threading
 from utils import db_conn

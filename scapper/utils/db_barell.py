@@ -49,5 +49,6 @@ class db_conn:
         self.engine.commit()
         cursor.close()
 
+
 if __name__ == "__main__":
     db = db_conn()
